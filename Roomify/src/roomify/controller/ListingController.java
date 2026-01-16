@@ -61,4 +61,19 @@ public class ListingController {
         }
         return false;
     }
+    public boolean updateListing(int listingId, String username, String location, double price, int occupants, boolean isOwner) {
+    for (roomlisting rl : DataStore.pendingListings) {
+        if (rl.listingId == listingId
+                && rl.ownerUsername.equalsIgnoreCase(username)
+                && rl.status.equalsIgnoreCase("Pending")) {
+
+            rl.location = location;
+            rl.pricePerWeek = price;
+            rl.maxOccupants = occupants;
+            rl.Owner = isOwner;
+            return true;
+        }
+    }
+    return false;
+}
 }

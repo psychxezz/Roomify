@@ -33,16 +33,25 @@ public class MyRequest extends javax.swing.JPanel {
                 req.roomId, "Unknown", "-", "-", req.status
             });
         } else {
-            model.addRow(new Object[]{
-                room.roomId,
-                room.location,
-                room.price,
-                room.occupants,
-                room.availability
-            });
+            double displayPrice =
+        (req.proposedPrice != null) ? req.proposedPrice : room.price;
+
+model.addRow(new Object[]{
+    room.roomId,
+    room.location,
+    displayPrice,
+    room.occupants,
+    room.availability
+});
         }
     }
 }
+    private String currentUsername;
+
+public void setCurrentUsername(String username) {
+    this.currentUsername = username;
+}
+
 
     /**
      * This method is called from within the constructor to initialize the form.
@@ -136,25 +145,60 @@ int row = jTable1.getSelectedRow();
     }//GEN-LAST:event_jButton1ActionPerformed
 
     private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
- int row = jTable1.getSelectedRow();
+  int row = jTable1.getSelectedRow();
     if (row == -1) {
         JOptionPane.showMessageDialog(this, "Select a request first.");
         return;
     }
 
-    int requestId = Integer.parseInt(jTable1.getValueAt(row, 0).toString());
+    // Column 0 is RoomID (NOT RequestID)
+    int roomId = Integer.parseInt(jTable1.getValueAt(row, 0).toString());
 
-    // Simple update: toggle status Pending <-> Cancelled
+    // Demo user
+    String username = "member";
+
+    // Find the request by (username + roomId)
+    roomify.model.Request target = null;
     for (roomify.model.Request r : roomify.model.DataStore.requests) {
-        if (r.id == requestId) {
-            if (r.status.equalsIgnoreCase("Pending")) r.status = "Cancelled";
-            else r.status = "Pending";
+        if (r.roomId == roomId && r.username.equalsIgnoreCase(username)) {
+            target = r;
             break;
         }
     }
 
-    JOptionPane.showMessageDialog(this, "Status updated.");
-    loadRequestsForUser("member");        // TODO add your handling code here:
+    if (target == null) {
+        JOptionPane.showMessageDialog(this, "Request not found.");
+        return;
+    }
+
+    String input = JOptionPane.showInputDialog(this, "Enter your new proposed price:");
+    if (input == null) return;
+
+    input = input.trim();
+    if (input.isEmpty()) {
+        JOptionPane.showMessageDialog(this, "Price cannot be empty.");
+        return;
+    }
+
+    double newPrice;
+    try {
+        newPrice = Double.parseDouble(input);
+    } catch (NumberFormatException e) {
+        JOptionPane.showMessageDialog(this, "Please enter a valid number.");
+        return;
+    }
+
+    if (newPrice <= 0) {
+        JOptionPane.showMessageDialog(this, "Price must be greater than 0.");
+        return;
+    }
+
+    target.proposedPrice = newPrice;
+    target.status = "NegotiationSent";
+
+    JOptionPane.showMessageDialog(this, "Updated! Proposed price sent.");
+
+    loadRequestsForUser(username);// refresh your table method       // TODO add your handling code here:
     }//GEN-LAST:event_jButton2ActionPerformed
 
 
